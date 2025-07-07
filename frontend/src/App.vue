@@ -9,6 +9,10 @@
   </el-container>
 </template>
 
+<script setup>
+import LeafletMap from "./components/LeafletMap.vue";
+</script>
+
 <style>
 /* İsteğe bağlı stil */
 </style>
