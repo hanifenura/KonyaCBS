@@ -10,7 +10,6 @@ import "leaflet/dist/leaflet.css";
 onMounted(() => {
   const map = L.map("map").setView([39.0, 34.5], 6);
 
-  // Taban katmanı (OpenStreetMap)
   const baseLayer = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
@@ -20,61 +19,34 @@ onMounted(() => {
     }
   ).addTo(map);
 
-  // Mahalle Katmanı
-  const mahalleLayer = L.tileLayer.wms(
+  const konyaLayer = L.tileLayer.wms(
     "http://localhost:1922/geoserver/harita/wms",
     {
-      layers: "harita:mahalleler",
+      layers: "harita:konya",
       format: "image/png",
       transparent: true,
       version: "1.3.0",
     }
   );
 
-  //MAHALLE ETİKET KATMANI
-  const mahalleLabelLayer = L.tileLayer.wms(
-    "http://localhost:1922/geoserver/harita/wms",
-    {
-      layers: "harita:mahalleler_etiket",
-      format: "image/png",
-      transparent: true,
-      version: "1.3.0",
-    }
-  );
+  konyaLayer.addTo(map);
 
-  // İlçe Katmanı
-  const ilceLayer = L.tileLayer.wms(
-    "http://localhost:1922/geoserver/harita/wms",
-    {
-      layers: "harita:ilceler",
-      format: "image/png",
-      transparent: true,
-      version: "1.3.0",
-    }
-  );
+  // const overlays = {
+  //   Mahalle: mahalleLayer,
+  //   İlçe: ilceLayer,
+  // };
 
-  // Başlangıçta mahalle katmanı gösterilsin
-  mahalleLayer.addTo(map);
+  // L.control.layers(null, overlays, { collapsed: false }).addTo(map);
 
-  // Layer kontrolü
-  const overlays = {
-    Mahalle: mahalleLayer,
-    İlçe: ilceLayer,
-  };
+  // map.on("overlayadd", (e) => {
+  //   map.eachLayer((layer) => {
+  //     if (layer !== baseLayer) map.removeLayer(layer);
+  //   });
+  //   map.addLayer(e.layer);
 
-  const layerControl = L.control
-    .layers(null, overlays, { collapsed: false })
-    .addTo(map);
-
-  // Katmanlar arasında sadece birisi aktif olacak şekilde event ayarı
-  map.on("overlayadd", function (e) {
-    // Seçilen katman dışındakileri kaldır
-    Object.values(overlays).forEach((layer) => {
-      if (layer !== e.layer && map.hasLayer(layer)) {
-        map.removeLayer(layer);
-      }
-    });
-  });
+  //   if (e.layer === mahalleLayer) selectedLayer = "mahalle";
+  //   else if (e.layer === ilceLayer) selectedLayer = "ilce";
+  // });
 });
 </script>
 
