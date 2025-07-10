@@ -8,48 +8,25 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 onMounted(() => {
-  const map = L.map("map").setView([39.0, 34.5], 6);
+  const map = L.map("map").setView([38.0, 32.5], 6);
 
-  const baseLayer = L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
-      attribution: "© OpenStreetMap contributors",
-      minZoom: 5,
-      maxZoom: 19,
-    }
-  ).addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap contributors",
+    minZoom: 8,
+    maxZoom: 19,
+  }).addTo(map);
 
-  const konyaLayer = L.tileLayer.wms(
-    "http://localhost:1922/geoserver/harita/wms",
-    {
+  const konyaLayer = L.tileLayer
+    .wms("http://localhost:8080/api/wms-proxy", {
       layers: "harita:konya",
       format: "image/png",
       transparent: true,
       version: "1.3.0",
-    }
-  );
-
-  konyaLayer.addTo(map);
-
-  // const overlays = {
-  //   Mahalle: mahalleLayer,
-  //   İlçe: ilceLayer,
-  // };
-
-  // L.control.layers(null, overlays, { collapsed: false }).addTo(map);
-
-  // map.on("overlayadd", (e) => {
-  //   map.eachLayer((layer) => {
-  //     if (layer !== baseLayer) map.removeLayer(layer);
-  //   });
-  //   map.addLayer(e.layer);
-
-  //   if (e.layer === mahalleLayer) selectedLayer = "mahalle";
-  //   else if (e.layer === ilceLayer) selectedLayer = "ilce";
-  // });
+      attribution: "GeoServer WMS",
+    })
+    .addTo(map);
 });
 </script>
-
 <style scoped>
 #map {
   border: 1px solid #ccc;

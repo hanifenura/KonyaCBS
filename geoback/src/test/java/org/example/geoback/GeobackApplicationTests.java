@@ -1,13 +1,13 @@
-package com.example.koski_cbs;
+package org.example.geoback;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class KoskiCbsApplicationTests {
+class GeobackApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }
