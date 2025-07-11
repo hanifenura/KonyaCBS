@@ -1,18 +1,14 @@
 <template>
-  <el-container>
-    <el-header style="font-size: 22px; font-weight: bold"
-      >GeoServer Leaflet Uygulaması</el-header
-    >
-    <el-main>
-      <LeafletMap />
-    </el-main>
-  </el-container>
+  <router-view></router-view>
 </template>
 
 <script setup>
-import LeafletMap from "./components/LeafletMap.vue";
 </script>
 
 <style>
-/* İsteğe bağlı stil */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
 </style>
