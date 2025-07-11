@@ -5,8 +5,12 @@ import org.example.geoback.repository.IlceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import org.springframework.web.bind.annotation.CrossOrigin;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -17,8 +21,12 @@ public class IlceController {
     private IlceRepository ilceRepository;
 
     @GetMapping
-    public List<Ilce> getAll() {
-        return ilceRepository.findAll();
+    public Page<Ilce> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ilceRepository.findAll(pageable);
     }
 
     @GetMapping("/{id}")
@@ -48,4 +56,5 @@ public class IlceController {
     public void delete(@PathVariable Integer id) {
         ilceRepository.deleteById(id);
     }
+
 }
