@@ -6,11 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
-@RequestMapping("/mahalleler")
-public class MahalleController {
+@RequestMapping("/api/data/mahalleler")
 
+public class MahalleController {
     @Autowired
     private MahalleRepository mahalleRepository;
 
@@ -39,7 +41,7 @@ public class MahalleController {
             mahalle.setAdiNumara(mahalleDetails.getAdiNumara());
             mahalle.setAktifMi(mahalleDetails.getAktifMi());
             mahalle.setTimeStamp(mahalleDetails.getTimeStamp());
-            mahalle.setGeoloc(mahalleDetails.getGeoloc()); // Eğer geometry alanı varsa
+           // mahalle.setGeoloc(mahalleDetails.getGeoloc()); // Eğer geometry alanı varsa
             return mahalleRepository.save(mahalle);
         }).orElse(null);
     }

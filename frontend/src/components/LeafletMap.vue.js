@@ -9,7 +9,7 @@ onMounted(() => {
         minZoom: 8,
         maxZoom: 19,
     }).addTo(map);
-    const konyaLayer = L.tileLayer.wms("http://localhost:1922/api/wms", {
+    const konyaLayer = L.tileLayer.wms("http://localhost:1923/api/wms", {
         layers: "harita:konya",
         format: "image/png",
         transparent: true,
