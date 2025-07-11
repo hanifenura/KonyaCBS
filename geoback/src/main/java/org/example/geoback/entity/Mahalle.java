@@ -18,10 +18,6 @@ public class Mahalle {
     @Column(name = "gid", nullable = false)
     private Integer gid;
 
-//    // geometry türü için JTS Geometry kullanıyoruz
-//    @Column(name = "geoloc", columnDefinition = "geometry")
-//    private Geometry geoloc;
-
     @Column(name = "fid")
     private BigDecimal fid;
 
@@ -43,7 +39,6 @@ public class Mahalle {
     @Column(name = "time_stamp")
     private LocalDate timeStamp;
 
-    // Getter ve Setterlar
 
     public Integer getGid() {
         return gid;
@@ -52,14 +47,6 @@ public class Mahalle {
     public void setGid(Integer gid) {
         this.gid = gid;
     }
-
-//    public Geometry getGeoloc() {
-//        return geoloc;
-//    }
-
-//    public void setGeoloc(Geometry geoloc) {
-//        this.geoloc = geoloc;
-//    }
 
     public BigDecimal getFid() {
         return fid;

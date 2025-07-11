@@ -24,10 +24,7 @@ public class ProxyController {
     @GetMapping("/wms-proxy")
     public ResponseEntity<byte[]> proxyWmsRequest(HttpServletRequest request) throws Exception {
 
-        // Orijinal query string (frontend'den gelen tüm parametreler)
         String queryString = request.getQueryString();
-
-        // GeoServer URL'sine query ve authKey ekle
         String targetUrl = geoserverUrl + "?" + queryString + "&authKey=" + authKey;
 
         URL url = new URL(targetUrl);
