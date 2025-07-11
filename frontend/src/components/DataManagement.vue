@@ -61,10 +61,33 @@
       </div>
     </div>
   </div>
+  <div v-if="totalPages > 1" class="pagination">
+    <button v-if="currentPage > 2" @click="changePage(0)">1</button>
+
+    <span v-if="currentPage > 3">...</span>
+
+    <button
+      v-for="page in visiblePages"
+      :key="page"
+      @click="changePage(page)"
+      :class="{ active: currentPage === page }"
+    >
+      {{ page + 1 }}
+    </button>
+
+    <span v-if="currentPage < totalPages - 4">...</span>
+
+    <button
+      v-if="currentPage < totalPages - 3"
+      @click="changePage(totalPages - 1)"
+    >
+      {{ totalPages }}
+    </button>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 
 const selectedLayer = ref("");
 const tableData = ref([]);
@@ -74,15 +97,29 @@ const editingId = ref(null);
 const formData = ref({});
 const formFields = ref([]);
 
+const currentPage = ref(0);
+const pageSize = 10;
+const totalPages = ref(1);
+
 const loadData = async () => {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/data/${selectedLayer.value}`
+      `http://localhost:8080/api/data/${selectedLayer.value}?page=${currentPage.value}&size=${pageSize}`
     );
     const data = await response.json();
-    tableData.value = data;
-    if (data.length > 0) {
-      tableHeaders.value = Object.keys(data[0]).filter((key) => key !== "id");
+    console.log(data);
+
+    tableData.value = data.content || [];
+    totalPages.value = data.totalPages || 1;
+
+    if (data.content && data.content.length > 0) {
+      const allKeys = new Set();
+      data.content.forEach((item) => {
+        Object.keys(item).forEach((key) => {
+          if (key !== "id") allKeys.add(key);
+        });
+      });
+      tableHeaders.value = [...allKeys];
       formFields.value = [...tableHeaders.value];
     }
   } catch (error) {
@@ -151,6 +188,29 @@ onMounted(() => {
   if (selectedLayer.value) {
     loadData();
   }
+});
+
+const changePage = (page) => {
+  currentPage.value = page;
+  loadData();
+};
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+  let start = Math.max(currentPage.value - 2, 0);
+  let end = Math.min(start + maxVisible, totalPages.value);
+
+  // Başlangıç sona yakınsa kaydır
+  if (end - start < maxVisible && totalPages.value >= maxVisible) {
+    start = Math.max(end - maxVisible, 0);
+  }
+
+  for (let i = start; i < end; i++) {
+    pages.push(i);
+  }
+
+  return pages;
 });
 </script>
 
@@ -268,6 +328,24 @@ th {
 
 .btn-cancel {
   background-color: #9e9e9e;
+  color: white;
+}
+
+.pagination {
+  margin-top: 20px;
+}
+
+.pagination button {
+  margin: 0 5px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background-color: #2196f3;
   color: white;
 }
 </style>

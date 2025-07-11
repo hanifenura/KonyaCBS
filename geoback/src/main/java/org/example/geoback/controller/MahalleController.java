@@ -5,8 +5,11 @@ import org.example.geoback.repository.MahalleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import org.springframework.web.bind.annotation.CrossOrigin;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -17,8 +20,12 @@ public class MahalleController {
     private MahalleRepository mahalleRepository;
 
     @GetMapping
-    public List<Mahalle> getAll() {
-        return mahalleRepository.findAll();
+    public Page<Mahalle> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return mahalleRepository.findAll(pageable);
     }
 
     @GetMapping("/{id}")
