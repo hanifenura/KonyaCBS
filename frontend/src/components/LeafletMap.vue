@@ -2,11 +2,15 @@
   <header class="app-header">
     <h2>Leaflet GeoServer Uygulaması</h2>
   </header>
+
   <div class="map-container">
     <div id="map" style="height: 500px; width: 700px"></div>
-    <button @click="goToManagement" class="management-btn">
-      Veri Yönetimi
-    </button>
+    <div class="button-group">
+      <button @click="goToManagement" class="management-btn">
+        Veri Yönetimi
+      </button>
+      <button @click="logout" class="logout-btn">Çıkış Yap</button>
+    </div>
   </div>
 </template>
 
@@ -21,6 +25,11 @@ const router = useRouter();
 
 const goToManagement = () => {
   router.push("/management");
+};
+
+const logout = () => {
+  localStorage.removeItem("token");
+  router.push("/auth/login");
 };
 
 onMounted(() => {
@@ -48,16 +57,6 @@ onMounted(() => {
     attribution: "GeoServer WMS",
   });
 
-  // const konyaLayer = L.tileLayer
-  //   .wms("http://localhost:8080/api/wms-proxy", {
-  //     layers: "harita:konya",
-  //     format: "image/png",
-  //     transparent: true,
-  //     version: "1.3.0",
-  //     attribution: "GeoServer WMS",
-  //   })
-  //   .addTo(map);
-
   const overlayMaps = {
     İlçe: ilceLayer,
     Mahalle: mahalleLayer,
@@ -84,10 +83,10 @@ onMounted(() => {
       const data = response.data;
 
       const popupContent = `
-      <b>Bilgiler:</b><br>
-      İlçe: ${data.ilce || "Bilinmiyor"}<br>
-      Mahalle: ${data.mahalle || "Bilinmiyor"}
-    `;
+        <b>Bilgiler:</b><br>
+        İlçe: ${data.ilce || "Bilinmiyor"}<br>
+        Mahalle: ${data.mahalle || "Bilinmiyor"}
+      `;
 
       L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
     } catch (error) {
@@ -97,7 +96,7 @@ onMounted(() => {
 });
 </script>
 
-<style>
+<style scoped>
 .map-container {
   position: relative;
   display: inline-block;
@@ -109,23 +108,39 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.management-btn {
-  position: static;
-  top: 20px;
-  right: 20px;
+.button-group {
   margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.management-btn {
   padding: 10px 20px;
   background-color: #2196f3;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  z-index: 1000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .management-btn:hover {
   background-color: #1976d2;
+}
+
+.logout-btn {
+  padding: 10px 20px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.logout-btn:hover {
+  background-color: #dc2626;
 }
 
 .leaflet-control-layers-overlays {
