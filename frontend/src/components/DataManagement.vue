@@ -1,4 +1,5 @@
 <template>
+  <MapBackground />
   <div class="data-management">
     <h2>Veri Yönetimi Sistemi</h2>
 
@@ -87,6 +88,7 @@
 </template>
 
 <script setup>
+import MapBackground from "../components/MapBackground.vue";
 import { ref, onMounted, watch, computed } from "vue";
 
 const selectedLayer = ref("");
@@ -216,9 +218,14 @@ const visiblePages = computed(() => {
 
 <style scoped>
 .data-management {
+  position: relative;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.95); /* beyaz kutu */
   padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  border-radius: 8px;
+  max-width: 1000px;
+  margin: 40px auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .layer-selection {

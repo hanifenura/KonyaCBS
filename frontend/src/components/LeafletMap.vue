@@ -32,30 +32,68 @@ const logout = () => {
   router.push("/auth/login");
 };
 
+// Custom WMS Layer Class (JWT Token ile fetch yapar)
+class LTileLayerWMSWithAuth extends L.TileLayer.WMS {
+  createTile(coords, done) {
+    const tile = document.createElement("img");
+    const url = this.getTileUrl(coords);
+    const token = localStorage.getItem("token");
+
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+        tile.src = blobUrl;
+        tile.onload = () => {
+          URL.revokeObjectURL(blobUrl);
+          done(null, tile);
+        };
+      })
+      .catch((err) => {
+        console.error("WMS yükleme hatası:", err);
+        done(err, tile);
+      });
+
+    return tile;
+  }
+}
+
 onMounted(() => {
   const map = L.map("map").setView([38.0, 32.5], 6);
 
+  // OpenStreetMap altlık harita
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors",
     minZoom: 7,
     maxZoom: 19,
   }).addTo(map);
 
-  const ilceLayer = L.tileLayer.wms("http://localhost:8080/api/wms-proxy", {
-    layers: "harita:ilceler",
-    format: "image/png",
-    transparent: true,
-    version: "1.3.0",
-    attribution: "GeoServer WMS",
-  });
+  // İlçe ve mahalle katmanları (JWT ile)
+  const ilceLayer = new LTileLayerWMSWithAuth(
+    "http://localhost:8080/api/wms-proxy",
+    {
+      layers: "harita:ilceler",
+      format: "image/png",
+      transparent: true,
+      version: "1.3.0",
+      attribution: "GeoServer WMS",
+    }
+  );
 
-  const mahalleLayer = L.tileLayer.wms("http://localhost:8080/api/wms-proxy", {
-    layers: "harita:mahalleler",
-    format: "image/png",
-    transparent: true,
-    version: "1.3.0",
-    attribution: "GeoServer WMS",
-  });
+  const mahalleLayer = new LTileLayerWMSWithAuth(
+    "http://localhost:8080/api/wms-proxy",
+    {
+      layers: "harita:mahalleler",
+      format: "image/png",
+      transparent: true,
+      version: "1.3.0",
+      attribution: "GeoServer WMS",
+    }
+  );
 
   const overlayMaps = {
     İlçe: ilceLayer,
@@ -69,19 +107,23 @@ onMounted(() => {
   ilceLayer.addTo(map);
   mahalleLayer.addTo(map);
 
+  // Haritaya tıklanınca bilgi getirme
   map.on("click", async (e) => {
     const { lat, lng } = e.latlng;
+    const token = localStorage.getItem("token");
 
     try {
       const response = await axios.get(
         "http://localhost:8080/api/location-info",
         {
           params: { lat, lng },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       const data = response.data;
-
       const popupContent = `
         <b>Bilgiler:</b><br>
         İlçe: ${data.ilce || "Bilinmiyor"}<br>
