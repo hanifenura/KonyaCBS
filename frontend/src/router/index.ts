@@ -6,10 +6,10 @@ import LoginForm from '../components/LoginForm.vue'
 import RegisterForm from '../components/RegisterForm.vue'
 
 const routes: Array<RouteRecordRaw> = [
-     {
+    {
     path: '/',
-    redirect: '/auth/login'
-  },
+    redirect: '/auth'
+    },
     {
     path: '/auth',
     component: AuthView, 
@@ -46,5 +46,17 @@ router.beforeEach((to, from, next) => {
     next()
   }
 })
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem("token");
+
+  const protectedRoutes = ["/", "/management"];
+
+  if (protectedRoutes.includes(to.path) && !token) {
+    next("/auth/login"); 
+  } else {
+    next(); 
+  }
+});
 
 export default router ;

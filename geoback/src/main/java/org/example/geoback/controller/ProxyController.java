@@ -23,9 +23,29 @@ public class ProxyController {
 
     @GetMapping("/wms-proxy")
     public ResponseEntity<byte[]> proxyWmsRequest(HttpServletRequest request) throws Exception {
+        // Header'dan token al
+        String authHeader = request.getHeader("Authorization");
+        String token = null;
 
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        } else {
+            // Header yoksa URL parametresinden token almaya çalış
+            token = request.getParameter("authkey");
+        }
+
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.status(401).build(); // Yetkisiz
+        }
+
+        // GeoServer URL'ini hazırla
         String queryString = request.getQueryString();
-        String targetUrl = geoserverUrl + "?" + queryString + "&authKey=" + authKey;
+        String targetUrl = geoserverUrl + "?" + queryString;
+
+        // Eğer queryString zaten authkey içermezse ekle
+        if (!queryString.contains("authkey=")) {
+            targetUrl += "&authkey=" + token;
+        }
 
         URL url = new URL(targetUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -41,4 +61,6 @@ public class ProxyController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(body);
     }
+
+
 }

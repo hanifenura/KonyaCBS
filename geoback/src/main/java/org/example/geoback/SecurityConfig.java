@@ -20,10 +20,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors().and()
-                .csrf().disable()  // CSRF kapalı
+                .csrf().disable()
                 .authorizeHttpRequests(authz -> authz
-                        .antMatchers("/auth/**").permitAll()  // Auth endpoint’leri açık
-                        .antMatchers("/api/protected/**").authenticated()  // Korunan endpoint’ler
+                        .antMatchers("/auth/**").permitAll()
+                        .antMatchers("/api/protected/**").authenticated()
                         .anyRequest().permitAll()
                 );
         return http.build();

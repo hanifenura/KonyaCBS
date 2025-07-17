@@ -5,11 +5,9 @@ import org.example.geoback.repository.UserRepository;
 import org.example.geoback.util.HashUtil;
 import org.example.geoback.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -47,11 +45,30 @@ public class AuthController {
             return ResponseEntity.status(401).body("Şifre hatalı.");
         }
 
-        // Token üretme
         String token = JwtUtil.generateToken(user.getUsername());
 
-        // Token’ı JSON olarak dön
         return ResponseEntity.ok(Map.of("token", token));
+    }
+
+    @GetMapping("/authkey-check")
+    public ResponseEntity<String> authkeyCheck(@RequestParam String authkey) {
+        String token = authkey;
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        String username;
+        try {
+            username = JwtUtil.getUsernameFromToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Geçersiz token");
+        }
+
+        if (username == null || username.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kullanıcı bulunamadı");
+        }
+
+        return ResponseEntity.ok(username);
     }
 
 

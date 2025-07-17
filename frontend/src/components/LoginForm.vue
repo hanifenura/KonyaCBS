@@ -45,10 +45,10 @@ export default {
         });
 
         if (response.ok) {
-          const data = await response.json(); // <- DÜZENLENDİ
-          localStorage.setItem("token", data.token); // <- "token" field'ı içinden al
+          const data = await response.json();
+          localStorage.setItem("token", data.token);
           alert("Giriş başarılı!");
-          this.$router.push("/home"); // Harita sayfasına yönlendir
+          this.$router.push("/home");
         } else {
           const error = await response.text();
           this.errorMessage = error || "Giriş başarısız.";
