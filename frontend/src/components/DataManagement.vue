@@ -203,7 +203,6 @@ const visiblePages = computed(() => {
   let start = Math.max(currentPage.value - 2, 0);
   let end = Math.min(start + maxVisible, totalPages.value);
 
-  // Başlangıç sona yakınsa kaydır
   if (end - start < maxVisible && totalPages.value >= maxVisible) {
     start = Math.max(end - maxVisible, 0);
   }
@@ -220,7 +219,7 @@ const visiblePages = computed(() => {
 .data-management {
   position: relative;
   z-index: 10;
-  background-color: rgba(255, 255, 255, 0.95); /* beyaz kutu */
+  background-color: rgba(255, 255, 255, 0.95);
   padding: 20px;
   border-radius: 8px;
   max-width: 1000px;
