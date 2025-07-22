@@ -27,7 +27,6 @@ import MapBackground from "../components/MapBackground.vue";
   margin: 1rem auto;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 
-  /* Ortalamak için flex */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -35,29 +34,29 @@ import MapBackground from "../components/MapBackground.vue";
 
 nav {
   display: flex;
-  justify-content: center; /* Yatay ortala */
-  align-items: center; /* Dikey ortala */
+  justify-content: center;
+  align-items: center;
   font-size: 1.1rem;
-  gap: 8px; /* Linkler arası boşluk */
+  gap: 8px;
   height: 40px;
 }
 
 nav .separator {
   color: #666;
   user-select: none;
-  line-height: 40px; /* Nav yüksekliğiyle hizala */
+  line-height: 40px;
 }
 
 nav a {
-  line-height: 40px; /* Dikey hizalama */
+  line-height: 40px;
   text-decoration: none;
   color: #3f5fc0;
   font-weight: 600;
 }
 
 a:hover {
-  transform: scale(1.05); /* Biraz büyütür */
-  transition: all 0.5s ease; /* Animasyon geçişi */
-  color: #22c55e; /* Yeşil renk */
+  transform: scale(1.05);
+  transition: all 0.5s ease;
+  color: #22c55e;
 }
 </style>

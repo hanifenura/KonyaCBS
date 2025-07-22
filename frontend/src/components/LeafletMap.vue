@@ -3,25 +3,54 @@
     <h2>Leaflet GeoServer Uygulaması</h2>
   </header>
 
-  <div class="map-container">
-    <div id="map" style="height: 500px; width: 700px"></div>
-    <div class="button-group">
-      <button @click="goToManagement" class="management-btn">
-        Veri Yönetimi
-      </button>
-      <button @click="logout" class="logout-btn">Çıkış Yap</button>
+  <div class="main-layout">
+    <div class="map-section">
+      <div id="map" class="map"></div>
+      <div class="button-group">
+        <button @click="goToManagement" class="management-btn">
+          Veri Yönetimi
+        </button>
+        <button @click="logout" class="logout-btn">Çıkış Yap</button>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>Seçilen Bilgiler</h3>
+
+      <h4>İlçe Bilgileri</h4>
+      <ul v-if="selectedData.ilce">
+        <li v-for="(value, key) in selectedData.ilce" :key="key">
+          <strong>{{ key }}:</strong> {{ value }}
+        </li>
+      </ul>
+      <p v-else>İlçe bilgisi bulunamadı.</p>
+
+      <h4>Mahalle Bilgileri</h4>
+      <ul v-if="selectedData.mahalle">
+        <li v-for="(value, key) in selectedData.mahalle" :key="key">
+          <strong>{{ key }}:</strong> {{ value }}
+        </li>
+      </ul>
+      <p v-else>Mahalle bilgisi bulunamadı.</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { ref, reactive, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
 
 const router = useRouter();
+
+const selectedData = reactive({
+  ilce: null,
+  mahalle: null,
+});
+
+const map = ref(null);
 
 const goToManagement = () => {
   router.push("/management");
@@ -32,139 +61,197 @@ const logout = () => {
   router.push("/auth/login");
 };
 
-// Custom WMS Layer Class (JWT Token ile fetch yapar)
-class LTileLayerWMSWithAuth extends L.TileLayer.WMS {
-  createTile(coords, done) {
-    const tile = document.createElement("img");
-    const url = this.getTileUrl(coords);
-    const token = localStorage.getItem("token");
-
-    fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.blob())
-      .then((blob) => {
-        const blobUrl = URL.createObjectURL(blob);
-        tile.src = blobUrl;
-        tile.onload = () => {
-          URL.revokeObjectURL(blobUrl);
-          done(null, tile);
-        };
-      })
-      .catch((err) => {
-        console.error("WMS yükleme hatası:", err);
-        done(err, tile);
-      });
-
-    return tile;
-  }
-}
-
 onMounted(() => {
-  const map = L.map("map").setView([38.0, 32.5], 6);
+  selectedData.ilce = null;
+  selectedData.mahalle = null;
+  nextTick(() => {
+    map.value = L.map("map").setView([38.0, 32.5], 6);
 
-  // OpenStreetMap altlık harita
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap contributors",
-    minZoom: 7,
-    maxZoom: 19,
-  }).addTo(map);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+      minZoom: 7,
+      maxZoom: 19,
+    }).addTo(map.value);
 
-  // İlçe ve mahalle katmanları (JWT ile)
-  const ilceLayer = new LTileLayerWMSWithAuth(
-    "http://localhost:8080/api/wms-proxy",
-    {
-      layers: "harita:ilceler",
-      format: "image/png",
-      transparent: true,
-      version: "1.3.0",
-      attribution: "GeoServer WMS",
-    }
-  );
+    // İlçe WMS Sorgusu
+    const ilceLayer = L.tileLayer.wms(
+      "http://localhost:8080/api/geoserver-proxy",
+      {
+        layers: "harita:ilceler",
+        format: "image/png",
+        transparent: true,
+        version: "1.3.0",
+        crs: L.CRS.EPSG3857,
+        authkey: localStorage.getItem("token"),
+      }
+    );
 
-  const mahalleLayer = new LTileLayerWMSWithAuth(
-    "http://localhost:8080/api/wms-proxy",
-    {
-      layers: "harita:mahalleler",
-      format: "image/png",
-      transparent: true,
-      version: "1.3.0",
-      attribution: "GeoServer WMS",
-    }
-  );
+    // Mahalle WMS Sorgusu
+    const mahalleLayer = L.tileLayer.wms(
+      "http://localhost:8080/api/geoserver-proxy",
+      {
+        layers: "harita:mahalleler",
+        format: "image/png",
+        transparent: true,
+        version: "1.3.0",
+        crs: L.CRS.EPSG3857,
+        authkey: localStorage.getItem("token"),
+      }
+    );
 
-  const overlayMaps = {
-    İlçe: ilceLayer,
-    Mahalle: mahalleLayer,
-  };
+    const overlayMaps = {
+      İlçe: ilceLayer,
+      Mahalle: mahalleLayer,
+    };
 
-  L.control
-    .layers(null, overlayMaps, { position: "topright", collapsed: false })
-    .addTo(map);
+    L.control
+      .layers(null, overlayMaps, { position: "topright", collapsed: false })
+      .addTo(map.value);
 
-  ilceLayer.addTo(map);
-  mahalleLayer.addTo(map);
+    ilceLayer.addTo(map.value);
+    mahalleLayer.addTo(map.value);
 
-  // Haritaya tıklanınca bilgi getirme
-  map.on("click", async (e) => {
-    const { lat, lng } = e.latlng;
-    const token = localStorage.getItem("token");
+    map.value.on("click", async (e) => {
+      const latlng = e.latlng;
+      const token = localStorage.getItem("token");
 
-    try {
-      const response = await axios.get(
-        "http://localhost:8080/api/location-info",
-        {
-          params: { lat, lng },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      try {
+        // API popup sorgusu
+        const apiResponse = await axios.get(
+          "http://localhost:8080/api/location-info",
+          {
+            params: { lat: latlng.lat, lng: latlng.lng },
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const apiData = apiResponse.data;
+
+        L.popup()
+          .setLatLng(latlng)
+          .setContent(
+            `<b>API Bilgileri:</b><br>İlçe: ${
+              apiData.ilce || "Bilinmiyor"
+            }<br>Mahalle: ${apiData.mahalle || "Bilinmiyor"}`
+          )
+          .openOn(map.value);
+
+        const buffer = 20;
+        const point3857 = L.CRS.EPSG3857.project(latlng);
+        const cqlFilter = `DWITHIN(geoloc, POINT(${point3857.x} ${point3857.y}), ${buffer}, meters)`;
+
+        // İlçe WFS Sorgusu
+        const ilceParams = {
+          service: "WFS",
+          version: "1.1.1",
+          request: "GetFeature",
+          typeName: "harita:ilceler",
+          outputFormat: "application/json",
+          cql_filter: cqlFilter,
+          srsName: "EPSG:3857",
+          maxFeatures: 5,
+          authkey: token,
+        };
+
+        const ilceResponse = await axios.get(
+          "http://localhost:8080/api/geoserver-proxy",
+          {
+            params: ilceParams,
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log("WFS İlçe yanıtı:", ilceResponse.data);
+
+        const ilceFeatures = ilceResponse.data.features;
+
+        if (ilceFeatures.length > 0) {
+          selectedData.ilce = { ...ilceFeatures[0].properties };
+        } else {
+          selectedData.ilce = null;
         }
-      );
 
-      const data = response.data;
-      const popupContent = `
-        <b>Bilgiler:</b><br>
-        İlçe: ${data.ilce || "Bilinmiyor"}<br>
-        Mahalle: ${data.mahalle || "Bilinmiyor"}
-      `;
+        // Mahalle WFS Sorgusu
+        const mahalleParams = {
+          service: "WFS",
+          version: "1.1.1",
+          request: "GetFeature",
+          typeName: "harita:mahalleler",
+          outputFormat: "application/json",
+          cql_filter: cqlFilter,
+          maxFeatures: 5,
+          srsName: "EPSG:3857",
+          authkey: token,
+        };
 
-      L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
-    } catch (error) {
-      console.error("API hatası:", error);
-    }
+        const mahalleResponse = await axios.get(
+          "http://localhost:8080/api/geoserver-proxy",
+          {
+            params: mahalleParams,
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log("WFS Mahalle yanıtı:", mahalleResponse.data);
+        const mahalleFeatures = mahalleResponse.data.features;
+
+        if (mahalleFeatures.length > 0) {
+          selectedData.mahalle = { ...mahalleFeatures[0].properties };
+        } else {
+          selectedData.mahalle = null;
+        }
+      } catch (error) {
+        console.error("Harita tıklama sorgu hatası:", error);
+        selectedData.ilce = null;
+        selectedData.mahalle = null;
+      }
+    });
   });
 });
 </script>
 
 <style scoped>
-.map-container {
-  position: relative;
-  display: inline-block;
+.main-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 10px 0;
 }
 
-#map {
+.map-section {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#map.map {
+  height: 500px;
+  width: 600px;
+  max-width: 700px;
   border: 1px solid #ccc;
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .button-group {
-  margin-top: 20px;
+  margin-top: 12px;
   display: flex;
   gap: 10px;
   justify-content: center;
+  width: 100%;
+  max-width: 700px;
+}
+
+.management-btn,
+.logout-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .management-btn {
-  padding: 10px 20px;
   background-color: #2196f3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .management-btn:hover {
@@ -172,27 +259,46 @@ onMounted(() => {
 }
 
 .logout-btn {
-  padding: 10px 20px;
   background-color: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .logout-btn:hover {
   background-color: #dc2626;
 }
 
-.leaflet-control-layers-overlays {
-  display: block;
-  text-align: left;
+.info-section {
+  flex: 1;
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 250px;
+  max-height: 500px;
+  overflow-y: auto;
 }
 
-.leaflet-control-layers-overlays label {
-  display: block;
+.info-section h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.info-section h4 {
   margin-bottom: 6px;
-  text-align: left;
+  margin-top: 12px;
+}
+
+.info-section ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+}
+
+.info-section li {
+  padding: 4px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.info-section li:last-child {
+  border-bottom: none;
 }
 </style>
