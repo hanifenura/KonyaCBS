@@ -25,6 +25,7 @@ public class AuthController {
 
         String hashedPassword = HashUtil.md5(user.getPassword());
         user.setPassword(hashedPassword);
+        user.setRole("VERİ_OKUYUCU");
         userRepository.save(user);
 
         return ResponseEntity.ok("Kayıt başarılı");
@@ -44,7 +45,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Şifre hatalı.");
         }
 
-        String token = JwtUtil.generateToken(user.getUsername());
+        String token = JwtUtil.generateToken(user.getUsername(), user.getRole());
 
         return ResponseEntity.ok(Map.of("token", token));
     }

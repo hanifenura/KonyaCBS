@@ -3,13 +3,10 @@ package org.example.geoback.controller;
 import org.example.geoback.entity.Mahalle;
 import org.example.geoback.repository.MahalleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import org.springframework.web.bind.annotation.CrossOrigin;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -48,7 +45,6 @@ public class MahalleController {
             mahalle.setAdiNumara(mahalleDetails.getAdiNumara());
             mahalle.setAktifMi(mahalleDetails.getAktifMi());
             mahalle.setTimeStamp(mahalleDetails.getTimeStamp());
-           // mahalle.setGeoloc(mahalleDetails.getGeoloc()); // Eğer geometry alanı varsa
             return mahalleRepository.save(mahalle);
         }).orElse(null);
     }
