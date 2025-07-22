@@ -269,7 +269,7 @@ th {
 }
 
 .btn-edit {
-  background-color: #4caf50;
+  background-color: #179c4c;
   color: white;
 }
 

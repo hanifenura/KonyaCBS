@@ -4,6 +4,10 @@
   </header>
 
   <div class="main-layout">
+    <SelectPanel
+      @ilceSecildi="selectedData.ilce = $event"
+      @mahalleSecildi="selectedData.mahalle = $event"
+    />
     <div class="map-section">
       <div id="map" class="map"></div>
       <div class="button-group">
@@ -16,8 +20,7 @@
 
     <div class="info-section">
       <h3>Seçilen Bilgiler</h3>
-
-      <h4>İlçe Bilgileri</h4>
+      <h4>İlçe Bilgileri:</h4>
       <ul v-if="selectedData.ilce">
         <li v-for="(value, key) in selectedData.ilce" :key="key">
           <strong>{{ key }}:</strong> {{ value }}
@@ -25,7 +28,7 @@
       </ul>
       <p v-else>İlçe bilgisi bulunamadı.</p>
 
-      <h4>Mahalle Bilgileri</h4>
+      <h4>Mahalle Bilgileri:</h4>
       <ul v-if="selectedData.mahalle">
         <li v-for="(value, key) in selectedData.mahalle" :key="key">
           <strong>{{ key }}:</strong> {{ value }}
@@ -42,6 +45,7 @@ import { useRouter } from "vue-router";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
+import SelectPanel from "./SelectPanel.vue";
 
 const router = useRouter();
 
@@ -251,40 +255,43 @@ onMounted(() => {
 }
 
 .management-btn {
-  background-color: #2196f3;
+  background-color: #179c4cbc;
 }
 
 .management-btn:hover {
-  background-color: #1976d2;
+  background-color: #179c4c;
 }
 
 .logout-btn {
-  background-color: #ef4444;
+  background-color: #e84e1bc8;
 }
 
 .logout-btn:hover {
-  background-color: #dc2626;
+  background-color: #e84e1b;
 }
 
 .info-section {
   flex: 1;
-  background-color: #f9f9f9;
+  background-color: #bfe0eaf3;
   padding: 16px;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(80, 127, 31, 0.1);
   min-width: 250px;
-  max-height: 500px;
+  max-height: 470px;
   overflow-y: auto;
 }
 
 .info-section h3 {
   margin-top: 0;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  color: #6a4ebc;
+  font-weight: 600;
 }
 
 .info-section h4 {
-  margin-bottom: 6px;
+  margin-bottom: 16px;
   margin-top: 12px;
+  color: #694ebc;
 }
 
 .info-section ul {
