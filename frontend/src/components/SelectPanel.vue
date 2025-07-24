@@ -35,17 +35,6 @@ const mahalleler = ref([]);
 
 const emit = defineEmits(["ilceSecildi", "mahalleSecildi"]);
 
-onMounted(async () => {
-  const response = await axios.get(
-    "http://localhost:8080/api/data/ilceler/select"
-  );
-  ilceler.value = response.data.sort((a, b) => {
-    return a.adiNumara.localeCompare(b.adiNumara, "tr", {
-      sensitivity: "base",
-    });
-  });
-});
-
 const ilceSecildi = async () => {
   selectedMahalle.value = "";
   const cleanIlceData = { ...selectedIlce.value };
@@ -57,7 +46,8 @@ const ilceSecildi = async () => {
       `http://localhost:8080/api/data/mahalleler/by-ilce?ilceref=${selectedIlce.value.ilceref.toString()}`
     );
     console.log("Mahalle API yanıtı:", response.data);
-
+    
+    // Mahalleleri alfabetik sırala
     mahalleler.value = response.data.sort((a, b) => {
       return a.adiNumara.localeCompare(b.adiNumara, "tr", {
         sensitivity: "base",
@@ -70,6 +60,19 @@ const ilceSecildi = async () => {
     );
   }
 };
+
+onMounted(async () => {
+  const response = await axios.get(
+    "http://localhost:8080/api/data/ilceler/select"
+  );
+  // İlçeleri alfabetik sırala
+  ilceler.value = response.data.sort((a, b) => {
+    return a.adiNumara.localeCompare(b.adiNumara, "tr", {
+      sensitivity: "base",
+    });
+  });
+});
+
 console.log("İlçeler:", ilceler.value);
 
 console.log("Seçilen ilçe:", selectedIlce.value);
