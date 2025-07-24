@@ -21,7 +21,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in tableData" :key="row.id">
+          <tr v-for="row in tableData" :key="row.gid">
             <td v-for="header in tableHeaders" :key="header">
               {{ row[header] }}
             </td>
@@ -29,7 +29,7 @@
               <button @click="editRow(row)" class="btn btn-edit">
                 Düzenle
               </button>
-              <button @click="deleteRow(row.id)" class="btn btn-delete">
+              <button @click="deleteRow(row.gid)" class="btn btn-delete">
                 Sil
               </button>
             </td>
@@ -62,9 +62,9 @@
       </div>
     </div>
   </div>
+
   <div v-if="totalPages > 1" class="pagination">
     <button v-if="currentPage > 2" @click="changePage(0)">1</button>
-
     <span v-if="currentPage > 3">...</span>
 
     <button
@@ -77,7 +77,6 @@
     </button>
 
     <span v-if="currentPage < totalPages - 4">...</span>
-
     <button
       v-if="currentPage < totalPages - 3"
       @click="changePage(totalPages - 1)"
@@ -90,6 +89,7 @@
 <script setup>
 import MapBackground from "../components/MapBackground.vue";
 import { ref, onMounted, watch, computed } from "vue";
+import SelectPanel from "../components/SelectPanel.vue";
 
 const selectedLayer = ref("");
 const tableData = ref([]);
@@ -111,14 +111,16 @@ const loadData = async () => {
     const data = await response.json();
     console.log(data);
 
-    tableData.value = data.content || [];
+    let rows = data.content || [];
+
+    tableData.value = rows;
     totalPages.value = data.totalPages || 1;
 
-    if (data.content && data.content.length > 0) {
+    if (rows.length > 0) {
       const allKeys = new Set();
-      data.content.forEach((item) => {
+      rows.forEach((item) => {
         Object.keys(item).forEach((key) => {
-          if (key !== "id") allKeys.add(key);
+          if (key !== "id" && key !== "mahalleler") allKeys.add(key);
         });
       });
       tableHeaders.value = [...allKeys];
@@ -131,7 +133,6 @@ const loadData = async () => {
 
 const deleteRow = async (id) => {
   if (!confirm("Bu veriyi silmek istediğinizden emin misiniz?")) return;
-
   try {
     await fetch(`http://localhost:8080/api/data/${selectedLayer.value}/${id}`, {
       method: "DELETE",
@@ -143,7 +144,7 @@ const deleteRow = async (id) => {
 };
 
 const editRow = (row) => {
-  editingId.value = row.id;
+  editingId.value = row.gid;
   formData.value = { ...row };
   showAddForm.value = true;
 };
@@ -226,40 +227,33 @@ const visiblePages = computed(() => {
   margin: 40px auto;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
-
 .layer-selection {
   margin-bottom: 20px;
 }
-
 .form-select {
   width: 200px;
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
 }
-
 .data-table {
   margin: 20px 0;
   overflow-x: auto;
 }
-
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
 }
-
 th,
 td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
-
 th {
   background-color: #f5f5f5;
 }
-
 .btn {
   padding: 8px 16px;
   border-radius: 4px;
@@ -267,23 +261,19 @@ th {
   cursor: pointer;
   margin: 0 4px;
 }
-
 .btn-edit {
   background-color: #179c4c;
   color: white;
 }
-
 .btn-delete {
   background-color: #f44336;
   color: white;
 }
-
 .btn-add {
   background-color: #2196f3;
   color: white;
   margin-top: 20px;
 }
-
 .modal {
   position: fixed;
   top: 0;
@@ -295,7 +285,6 @@ th {
   justify-content: center;
   align-items: center;
 }
-
 .modal-content {
   background-color: white;
   padding: 20px;
@@ -303,44 +292,36 @@ th {
   width: 500px;
   max-width: 90%;
 }
-
 .form-group {
   margin-bottom: 15px;
 }
-
 .form-group label {
   display: block;
   margin-bottom: 5px;
 }
-
 .form-group input {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
-
 .form-actions {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
-
 .btn-save {
   background-color: #4caf50;
   color: white;
 }
-
 .btn-cancel {
   background-color: #9e9e9e;
   color: white;
 }
-
 .pagination {
   margin-top: 20px;
 }
-
 .pagination button {
   margin: 0 5px;
   padding: 6px 12px;
@@ -349,7 +330,6 @@ th {
   background-color: #f9f9f9;
   cursor: pointer;
 }
-
 .pagination button.active {
   background-color: #2196f3;
   color: white;

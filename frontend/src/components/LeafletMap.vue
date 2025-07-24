@@ -5,8 +5,8 @@
 
   <div class="main-layout">
     <SelectPanel
-      @ilceSecildi="selectedData.ilce = $event"
-      @mahalleSecildi="selectedData.mahalle = $event"
+      @ilceSecildi="handleIlceSecildi"
+      @mahalleSecildi="handleMahalleSecildi"
     />
     <div class="map-section">
       <div id="map" class="map"></div>
@@ -65,11 +65,66 @@ const logout = () => {
   router.push("/auth/login");
 };
 
+const checkLayerProperties = async () => {
+  const token = localStorage.getItem("token");
+  try {
+    const ilceParams = {
+      service: "WFS",
+      version: "1.1.0",
+      request: "GetFeature",
+      typeName: "harita:ilceler",
+      outputFormat: "application/json",
+      maxFeatures: 1,
+      authkey: token,
+    };
+
+    const ilceResponse = await axios.get(
+      "http://localhost:8080/api/geoserver-proxy",
+      {
+        params: ilceParams,
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log(
+      "İlçe katmanı örnek özellikler:",
+      ilceResponse.data?.features?.[0]?.properties
+    );
+
+    const mahalleParams = {
+      service: "WFS",
+      version: "1.1.0",
+      request: "GetFeature",
+      typeName: "harita:mahalleler",
+      outputFormat: "application/json",
+      maxFeatures: 1,
+      authkey: token,
+    };
+
+    const mahalleResponse = await axios.get(
+      "http://localhost:8080/api/geoserver-proxy",
+      {
+        params: mahalleParams,
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log(
+      "Mahalle katmanı örnek özellikler:",
+      mahalleResponse.data?.features?.[0]?.properties
+    );
+  } catch (error) {
+    console.error("Katman kontrol hatası:", error);
+  }
+};
+
 onMounted(() => {
   selectedData.ilce = null;
   selectedData.mahalle = null;
-  nextTick(() => {
-    map.value = L.map("map").setView([38.0, 32.5], 6);
+  nextTick(async () => {
+    map.value = L.map("map").setView([37.8746, 32.4932], 9);
+
+    await checkLayerProperties();
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap contributors",
@@ -77,39 +132,44 @@ onMounted(() => {
       maxZoom: 19,
     }).addTo(map.value);
 
-    // İlçe WMS Sorgusu
+    const token = localStorage.getItem("token");
+
     const ilceLayer = L.tileLayer.wms(
       "http://localhost:8080/api/geoserver-proxy",
       {
         layers: "harita:ilceler",
         format: "image/png",
         transparent: true,
-        version: "1.3.0",
-        crs: L.CRS.EPSG3857,
-        authkey: localStorage.getItem("token"),
+        version: "1.1.1",
+        authkey: token,
+        styles: "",
+        zIndex: 1,
       }
     );
 
-    // Mahalle WMS Sorgusu
     const mahalleLayer = L.tileLayer.wms(
       "http://localhost:8080/api/geoserver-proxy",
       {
         layers: "harita:mahalleler",
         format: "image/png",
         transparent: true,
-        version: "1.3.0",
-        crs: L.CRS.EPSG3857,
-        authkey: localStorage.getItem("token"),
+        version: "1.1.1",
+        authkey: token,
+        styles: "",
+        zIndex: 2,
       }
     );
 
     const overlayMaps = {
-      İlçe: ilceLayer,
-      Mahalle: mahalleLayer,
+      İlçeler: ilceLayer,
+      Mahalleler: mahalleLayer,
     };
 
     L.control
-      .layers(null, overlayMaps, { position: "topright", collapsed: false })
+      .layers(null, overlayMaps, {
+        position: "topright",
+        collapsed: false,
+      })
       .addTo(map.value);
 
     ilceLayer.addTo(map.value);
@@ -120,7 +180,6 @@ onMounted(() => {
       const token = localStorage.getItem("token");
 
       try {
-        // API popup sorgusu
         const apiResponse = await axios.get(
           "http://localhost:8080/api/location-info",
           {
@@ -142,8 +201,6 @@ onMounted(() => {
         const buffer = 20;
         const point3857 = L.CRS.EPSG3857.project(latlng);
         const cqlFilter = `DWITHIN(geoloc, POINT(${point3857.x} ${point3857.y}), ${buffer}, meters)`;
-
-        // İlçe WFS Sorgusu
         const ilceParams = {
           service: "WFS",
           version: "1.1.1",
@@ -173,7 +230,6 @@ onMounted(() => {
           selectedData.ilce = null;
         }
 
-        // Mahalle WFS Sorgusu
         const mahalleParams = {
           service: "WFS",
           version: "1.1.1",
