@@ -3,13 +3,12 @@ package org.example.geoback.controller;
 import org.example.geoback.entity.Ilce;
 import org.example.geoback.repository.IlceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import org.springframework.web.bind.annotation.CrossOrigin;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -55,6 +54,11 @@ public class IlceController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         ilceRepository.deleteById(id);
+    }
+
+    @GetMapping("/select")
+    public List<Ilce> getAllIlceler() {
+        return ilceRepository.findAll();
     }
 
 }

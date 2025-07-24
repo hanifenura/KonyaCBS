@@ -1,15 +1,12 @@
 package org.example.geoback.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.Column;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.locationtech.jts.geom.Geometry;
 
+import javax.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "mahalleler")
@@ -24,8 +21,13 @@ public class Mahalle {
     @Column(name = "mahalleref")
     private BigDecimal mahalleref;
 
-    @Column(name = "ilceref")
+    @Column(name = "ilceref", insertable = false, updatable = false)
     private BigDecimal ilceref;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ilceref", referencedColumnName = "gid", insertable = false, updatable = false)
+    @JsonBackReference
+    private Ilce ilce;
 
     @Column(name = "uavt_mahkn")
     private BigDecimal uavtMahkn;
@@ -39,6 +41,11 @@ public class Mahalle {
     @Column(name = "time_stamp")
     private LocalDate timeStamp;
 
+    @JsonIgnore
+    @Column(name = "geoloc")
+    private Geometry geometry;
+
+    //Getter ve Setter Metodlari
 
     public Integer getGid() {
         return gid;
@@ -103,5 +110,14 @@ public class Mahalle {
     public void setTimeStamp(LocalDate timeStamp) {
         this.timeStamp = timeStamp;
     }
+
+    public Geometry getGeometry() {
+        return geometry;
+    }
+
+    public void setGeometry(Geometry geometry) {
+        this.geometry = geometry;
+    }
+
 
 }

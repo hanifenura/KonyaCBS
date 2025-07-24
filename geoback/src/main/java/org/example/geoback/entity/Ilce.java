@@ -1,12 +1,13 @@
 package org.example.geoback.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.Column;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.locationtech.jts.geom.Geometry;
 
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "ilceler")
@@ -25,6 +26,11 @@ public class Ilce {
     @Column(name = "ilceref")
     private BigDecimal ilceref;
 
+    //İlçeye bağlı mahalleler
+    @OneToMany(mappedBy = "ilce", fetch = FetchType.LAZY)
+    @JsonManagedReference  // JSON serialize ederken mahalle listesini gösterir
+    private List<Mahalle> mahalleler;
+
     @Column(name = "adi_numara", length = 254)
     private String adiNumara;
 
@@ -34,7 +40,11 @@ public class Ilce {
     @Column(name = "time_stamp")
     private LocalDate timeStamp;
 
-    // Getter ve Setter metodları
+    @JsonIgnore
+    @Column(name = "geoloc")
+    private Geometry geometry;
+
+    // Getter ve Setter Metodlari
 
     public Integer getGid() {
         return gid;
@@ -91,4 +101,13 @@ public class Ilce {
     public void setTimeStamp(LocalDate timeStamp) {
         this.timeStamp = timeStamp;
     }
+
+    public Geometry getGeometry() {
+        return geometry;
+    }
+
+    public void setGeometry(Geometry geometry) {
+        this.geometry = geometry;
+    }
+
 }
