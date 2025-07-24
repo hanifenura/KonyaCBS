@@ -39,7 +39,11 @@ onMounted(async () => {
   const response = await axios.get(
     "http://localhost:8080/api/data/ilceler/select"
   );
-  ilceler.value = response.data;
+  ilceler.value = response.data.sort((a, b) => {
+    return a.adiNumara.localeCompare(b.adiNumara, "tr", {
+      sensitivity: "base",
+    });
+  });
 });
 
 const ilceSecildi = async () => {
@@ -49,56 +53,21 @@ const ilceSecildi = async () => {
   emit("ilceSecildi", cleanIlceData);
 
   try {
-    const specialDistrictMapping = {
-      SELÇUKLU: 3,
-      BOZKIR: 3,
-      DERBENT: 4,
-      DOĞANHİSAR: 5,
-    };
-
-    let ilcerefInt;
-    if (selectedIlce.value.adiNumara === "SELÇUKLU") {
-      const debugResponse = await axios.get(
-        "http://localhost:8080/api/data/mahalleler/selcuklu-debug"
-      );
-      console.log("Selçuklu Debug Sonuçları:", debugResponse.data);
-
-      const ilceKaydi = debugResponse.data.ilce_kaydi?.[0];
-      if (ilceKaydi) {
-        ilcerefInt = ilceKaydi.gid;
-        console.log(
-          `Selçuklu için ilçe kaydından gid kullanılıyor: ${ilcerefInt}`
-        );
-      } else {
-        ilcerefInt = selectedIlce.value.gid;
-        console.log(`Selçuklu için mevcut gid kullanılıyor: ${ilcerefInt}`);
-      }
-    } else if (specialDistrictMapping[selectedIlce.value.adiNumara]) {
-      ilcerefInt = specialDistrictMapping[selectedIlce.value.adiNumara];
-      console.log(
-        `Özel ilçe eşleştirmesi kullanıldı: ${selectedIlce.value.adiNumara} -> ${ilcerefInt}`
-      );
-    } else {
-      ilcerefInt = parseInt(selectedIlce.value.id);
-      console.log(`Standart ID kullanıldı: ${ilcerefInt}`);
-    }
-
-    if (!ilcerefInt || isNaN(ilcerefInt)) {
-      console.error("Geçersiz ilceref değeri:", ilcerefInt);
-      ilcerefInt = selectedIlce.value.gid;
-    }
-
     const response = await axios.get(
-      `http://localhost:8080/api/data/mahalleler/by-ilce?ilceref=${ilcerefInt}`
+      `http://localhost:8080/api/data/mahalleler/by-ilce?ilceref=${selectedIlce.value.ilceref.toString()}`
     );
     console.log("Mahalle API yanıtı:", response.data);
-    mahalleler.value = response.data;
+
+    mahalleler.value = response.data.sort((a, b) => {
+      return a.adiNumara.localeCompare(b.adiNumara, "tr", {
+        sensitivity: "base",
+      });
+    });
   } catch (error) {
     console.error(
       "Mahalle getirme hatası:",
       error.response?.data || error.message
     );
-    mahalleler.value = [];
   }
 };
 console.log("İlçeler:", ilceler.value);

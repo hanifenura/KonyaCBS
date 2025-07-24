@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -121,32 +122,28 @@ public class MahalleController {
     }
 
     @GetMapping("/by-ilce")
-    public List<Mahalle> getMahallelerByIlce(@RequestParam Integer ilceref) {
-        System.out.println("Gelen ilceref: " + ilceref);
-
-        List<Mahalle> mahalleler = mahalleRepository.findByIlceref(ilceref);
-
-        if (mahalleler.isEmpty()) {
-            mahalleler = mahalleRepository.findByIlce_Gid(ilceref);
-
-            if (mahalleler.isEmpty()) {
-                mahalleler = mahalleRepository.findByIlce_Id(ilceref);
-            }
+    public List<Mahalle> getMahallelerByIlce(@RequestParam String ilceref) {
+        try {
+            BigDecimal ilcerefBD = new BigDecimal(ilceref);
+            System.out.println("Gelen ilceref: " + ilcerefBD);
+            return mahalleRepository.findByIlceref(ilcerefBD);
+        } catch (NumberFormatException e) {
+            System.err.println("Geçersiz ilceref değeri: " + ilceref);
+            return new ArrayList<>();
         }
-
-        System.out.println("Bulunan mahalle sayısı: " + mahalleler.size());
-        return mahalleler;
     }
 
     @GetMapping("/selcuklu-debug")
     public Map<String, Object> getSelcukluDebug() {
         Map<String, Object> result = new HashMap<>();
-
+        
+        // Selçuklu'nun mahallelerini getir
         List<Mahalle> mahalleler = mahalleRepository.findByIlceAdiNumara("SELÇUKLU");
         result.put("mahalleler", mahalleler);
-
+        
+        // Mahalle sayısını ekle
         result.put("mahalle_sayisi", mahalleler.size());
-
+        
         return result;
     }
 
