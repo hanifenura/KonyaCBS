@@ -55,6 +55,125 @@ const selectedData = reactive({
 });
 
 const map = ref(null);
+const highlightedLayer = ref(null);
+
+const clearHighlight = () => {
+  if (highlightedLayer.value) {
+    map.value.removeLayer(highlightedLayer.value);
+    highlightedLayer.value = null;
+  }
+};
+
+const highlightFeature = async (type, data) => {
+  clearHighlight();
+
+  if (!data) return;
+
+  console.log(`Vurgulanacak ${type} verisi:`, data);
+
+  const token = localStorage.getItem("token");
+  let cqlFilter;
+  let typeName;
+
+  try {
+    if (type === "ilce") {
+      typeName = "harita:ilceler";
+      cqlFilter = `ilceref = ${data.ilceref}`;
+      console.log("İlçe için kullanılan filtre:", cqlFilter);
+    } else if (type === "mahalle") {
+      typeName = "harita:mahalleler";
+      cqlFilter = `mahalleref = ${data.mahalleref}`;
+      console.log("Mahalle için kullanılan filtre:", cqlFilter);
+    } else {
+      return;
+    }
+
+    const params = {
+      service: "WFS",
+      version: "1.1.0",
+      request: "GetFeature",
+      typeName: typeName,
+      outputFormat: "application/json",
+      cql_filter: cqlFilter,
+      authkey: token,
+      srsName: "EPSG:4326",
+    };
+
+    console.log("WFS sorgu parametreleri:", params);
+
+    const response = await axios.get(
+      "http://localhost:8080/api/geoserver-proxy",
+      {
+        params: params,
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log("WFS yanıtı:", response.data);
+
+    if (response.data.features && response.data.features.length > 0) {
+      const style = {
+        color: "#ff0000",
+        weight: 5,
+        opacity: 0.65,
+        fillColor: "#ff0000",
+        fillOpacity: 0.4,
+      };
+
+      highlightedLayer.value = L.geoJSON(response.data, {
+        style: style,
+        onEachFeature: (feature, layer) => {
+          const properties = feature.properties;
+          const popupContent = `
+            <div>
+              <strong>${type === "ilce" ? "İlçe" : "Mahalle"}:</strong> ${
+            properties.adi_numara || "Bilinmiyor"
+          }<br>
+              <strong>Referans:</strong> ${
+                type === "ilce"
+                  ? properties.ilceref
+                  : properties.mahalleref || "Bilinmiyor"
+              }
+            </div>
+          `;
+          layer.bindPopup(popupContent);
+        },
+      }).addTo(map.value);
+
+      const bounds = highlightedLayer.value.getBounds();
+      console.log("Zoom yapılacak sınırlar:", bounds);
+      map.value.fitBounds(bounds, { padding: [50, 50] });
+    } else {
+      console.log("Vurgulanacak özellik bulunamadı");
+    }
+  } catch (error) {
+    console.error("Vurgulama hatası:", error);
+    if (error.response?.data) {
+      const errorText = error.response.data;
+      if (errorText.includes("Illegal property name")) {
+        console.error(
+          "GeoServer alan adı hatası. Kullanılan filtre:",
+          cqlFilter
+        );
+        console.error("Mevcut veri:", data);
+      }
+      console.error("Hata detayları:", errorText);
+    }
+  }
+};
+
+const handleIlceSecildi = (ilce) => {
+  console.log("İlçe seçildi:", ilce);
+  selectedData.ilce = ilce;
+  highlightFeature("ilce", ilce);
+  selectedData.mahalle = null;
+};
+
+const handleMahalleSecildi = (mahalle) => {
+  console.log("Mahalle seçildi:", mahalle);
+  selectedData.mahalle = mahalle;
+  highlightFeature("mahalle", mahalle);
+};
 
 const goToManagement = () => {
   router.push("/management");
