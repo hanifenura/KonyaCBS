@@ -22,7 +22,7 @@ public class Mahalle {
     private BigDecimal mahalleref;
 
     @Column(name = "ilceref", insertable = false, updatable = false)
-    private BigDecimal ilceref;
+    private Integer ilceref;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ilceref", referencedColumnName = "gid", insertable = false, updatable = false)
@@ -71,11 +71,11 @@ public class Mahalle {
         this.mahalleref = mahalleref;
     }
 
-    public BigDecimal getIlceref() {
+    public Integer getIlceref() {
         return ilceref;
     }
 
-    public void setIlceref(BigDecimal ilceref) {
+    public void setIlceref(Integer ilceref) {
         this.ilceref = ilceref;
     }
 

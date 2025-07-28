@@ -9,7 +9,6 @@ import java.util.Date;
 public class JwtUtil {
     private static final String SECRET_KEY = "Jd0BqE6Gmqpy8Eut9yhuocsDWOmzo5RP";
 
-    // 🔹 Rol bilgisi içeren token üretimi
     public static String generateToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
@@ -20,17 +19,17 @@ public class JwtUtil {
                 .compact();
     }
 
-    // 🔹 Token'dan kullanıcı adını al
+
     public static String getUsernameFromToken(String token) {
         return getAllClaimsFromToken(token).getSubject();
     }
 
-    // 🔹 Token'dan rol al
+
     public static String getRoleFromToken(String token) {
         return getAllClaimsFromToken(token).get("roles", String.class);
     }
 
-    // 🔹 Token geçerli mi?
+
     public static boolean isTokenExpired(String token) {
         Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
@@ -45,12 +44,12 @@ public class JwtUtil {
         }
     }
 
-    // 🔹 Token'ın sona erme tarihini al
+
     public static Date getExpirationDateFromToken(String token) {
         return getAllClaimsFromToken(token).getExpiration();
     }
 
-    // 🔹 Tüm claim'leri al (özel bilgiler burada)
+   
     private static Claims getAllClaimsFromToken(String token) {
         return Jwts.parser()
                 .setSigningKey(SECRET_KEY)

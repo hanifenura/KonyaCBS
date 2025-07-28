@@ -25,6 +25,7 @@ public class MahalleController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    // @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @GetMapping
     public Page<Mahalle> getAll(
             @RequestParam(defaultValue = "0") int page,
@@ -34,16 +35,19 @@ public class MahalleController {
         return mahalleRepository.findAll(pageable);
     }
 
+    // @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @GetMapping("/{id}")
     public Mahalle getById(@PathVariable Integer id) {
         return mahalleRepository.findById(id).orElse(null);
     }
 
+    // @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @PostMapping
     public Mahalle create(@RequestBody Mahalle mahalle) {
         return mahalleRepository.save(mahalle);
     }
 
+    // @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @PutMapping("/{id}")
     public Mahalle update(@PathVariable Integer id, @RequestBody Mahalle mahalleDetails) {
         return mahalleRepository.findById(id).map(mahalle -> {
@@ -58,6 +62,7 @@ public class MahalleController {
         }).orElse(null);
     }
 
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         mahalleRepository.deleteById(id);

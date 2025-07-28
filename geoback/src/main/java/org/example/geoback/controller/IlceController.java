@@ -19,6 +19,7 @@ public class IlceController {
     @Autowired
     private IlceRepository ilceRepository;
 
+    // @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @GetMapping
     public Page<Ilce> getAll(
             @RequestParam(defaultValue = "0") int page,
@@ -28,16 +29,19 @@ public class IlceController {
         return ilceRepository.findAll(pageable);
     }
 
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @GetMapping("/{id}")
     public Ilce getById(@PathVariable Integer id) {
         return ilceRepository.findById(id).orElse(null);
     }
 
+    // @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @PostMapping
     public Ilce create(@RequestBody Ilce ilce) {
         return ilceRepository.save(ilce);
     }
 
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @PutMapping("/{id}")
     public Ilce update(@PathVariable Integer id, @RequestBody Ilce ilceDetails) {
         return ilceRepository.findById(id).map(ilce -> {
@@ -51,6 +55,7 @@ public class IlceController {
         }).orElse(null);
     }
 
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         ilceRepository.deleteById(id);

@@ -23,6 +23,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests(authz -> authz
                         .antMatchers("/auth/**").permitAll()
+                        .antMatchers("/api/data/").hasAnyRole("ADMIN", "EDITOR")
                         .antMatchers("/api/protected/**").authenticated()
                         .anyRequest().permitAll()
                 );

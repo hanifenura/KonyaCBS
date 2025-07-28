@@ -11,7 +11,11 @@
     <div class="map-section">
       <div id="map" class="map"></div>
       <div class="button-group">
-        <button @click="goToManagement" class="management-btn">
+        <button
+          v-if="role === 'ADMIN' || role === 'EDITOR'"
+          @click="goToManagement"
+          class="management-btn"
+        >
           Veri Yönetimi
         </button>
         <button @click="logout" class="logout-btn">Çıkış Yap</button>
@@ -56,6 +60,39 @@ const selectedData = reactive({
 
 const map = ref(null);
 const highlightedLayer = ref(null);
+const role = ref(null);
+
+function parseJwt(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
+const checkUserRole = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    router.push("/auth/login");
+    return;
+  }
+  const payload = parseJwt(token);
+
+  role.value = payload?.roles || payload?.role || null;
+
+  if (!role.value) {
+    localStorage.removeItem("token");
+    router.push("/auth/login");
+  }
+};
 
 const clearHighlight = () => {
   if (highlightedLayer.value) {
@@ -240,6 +277,7 @@ const checkLayerProperties = async () => {
 onMounted(() => {
   selectedData.ilce = null;
   selectedData.mahalle = null;
+  checkUserRole(); // Rolü kontrol et ve ata
   nextTick(async () => {
     map.value = L.map("map").setView([37.8746, 32.4932], 9);
 

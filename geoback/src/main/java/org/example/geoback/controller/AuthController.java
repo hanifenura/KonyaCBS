@@ -25,7 +25,7 @@ public class AuthController {
 
         String hashedPassword = HashUtil.md5(user.getPassword());
         user.setPassword(hashedPassword);
-        user.setRole("VERİ_OKUYUCU");
+        user.setRole("VIEWER");
         userRepository.save(user);
 
         return ResponseEntity.ok("Kayıt başarılı");
@@ -45,7 +45,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Şifre hatalı.");
         }
 
-        String token = JwtUtil.generateToken(user.getUsername(), user.getRole());
+        String token = JwtUtil.generateToken(dbUser.getUsername(), dbUser.getRole());
 
         return ResponseEntity.ok(Map.of("token", token));
     }
@@ -71,5 +71,24 @@ public class AuthController {
         return ResponseEntity.ok(username);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7); // "Bearer " kısmını at
+        String username;
+        try {
+            username = JwtUtil.getUsernameFromToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Geçersiz token");
+        }
 
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kullanıcı bulunamadı");
+        }
+
+        Map<String, String> response = new java.util.HashMap<>();
+        response.put("username", user.getUsername());
+        response.put("role", user.getRole()); // DB'deki rol
+        return ResponseEntity.ok(response);
+    }
 }
